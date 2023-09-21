@@ -41,11 +41,17 @@ fn groth16_proof() -> Result<()> {
 
 #[test]
 fn groth16_proof_wrong_input() {
-    let cfg = CircomConfig::<Bn254>::new(
-        "./test-vectors/mycircuit.wasm",
-        "./test-vectors/mycircuit.r1cs",
-    )
-    .unwrap();
+
+    const MAIN_WASM: &'static [u8] = include_bytes!("../test-vectors/mycircuit.wasm");
+    const MAIN_R1CS: &'static [u8] = include_bytes!("../test-vectors/mycircuit.r1cs");
+
+    let cfg = CircomConfig::<Bn254>::from_bytes(MAIN_WASM, MAIN_R1CS).unwrap();
+
+    // let cfg = CircomConfig::<Bn254>::new(
+    //     "./test-vectors/mycircuit.wasm",
+    //     "./test-vectors/mycircuit.r1cs",
+    // )
+    // .unwrap();
     let mut builder = CircomBuilder::new(cfg);
     builder.push_input("a", 3);
     // This isn't a public input to the circuit, should fail
