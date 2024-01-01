@@ -9,6 +9,7 @@ use std::collections::HashMap;
 
 use crate::{circom::R1CSFile, witness::WitnessCalculator};
 use color_eyre::Result;
+use android_logger::Config;
 
 #[derive(Clone, Debug)]
 pub struct CircomBuilder<E: Pairing> {
@@ -36,13 +37,28 @@ impl<E: Pairing> CircomConfig<E> {
         })
     }
     pub fn from_bytes(wtns_bytes: &[u8], r1cs_bytes: &[u8]) -> Result<Self> {
+        android_logger::init_once(Config::default().with_min_level(Level::Trace));
+
+        let now = Instant::now();
         let wtns = WitnessCalculator::from_bytes(wtns_bytes).unwrap();
+        log::error!("PROOF OF PASSPORT ---- from_bytes ---- wtns init. Took: {:?}", now.elapsed());
+        let wtns_init_time = now.elapsed()
+        let now = Instant::now();
         let reader = Cursor::new(r1cs_bytes);
+        log::error!("PROOF OF PASSPORT ---- from_bytes ---- reader init. Took: {:?}", now.elapsed());
+        let reader_init_time = now.elapsed()
+        let now = Instant::now();
         let r1cs = R1CSFile::new(reader)?.into();
+        log::error!("PROOF OF PASSPORT ---- from_bytes ---- r1cs init. Took: {:?}", now.elapsed());
+        let r1cs_init_time = now.elapsed()
+        let now = Instant::now();
         Ok(Self {
             wtns,
             r1cs,
             sanity_check: false,
+            wtns_init_time,
+            reader_init_time,
+            r1cs_init_time,
         })
     }
 }
