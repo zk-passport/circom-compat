@@ -5,12 +5,10 @@ use std::io::Cursor;
 use super::{CircomCircuit, R1CS};
 
 use num_bigint::BigInt;
-use std::{collections::HashMap, time::Instant};
+use std::collections::HashMap;
 
 use crate::{circom::R1CSFile, witness::WitnessCalculator};
 use color_eyre::Result;
-use android_logger::Config;
-use log::Level;
 
 #[derive(Clone, Debug)]
 pub struct CircomBuilder<E: Pairing> {
@@ -24,9 +22,6 @@ pub struct CircomConfig<E: Pairing> {
     pub r1cs: R1CS<E>,
     pub wtns: WitnessCalculator,
     pub sanity_check: bool,
-    pub wtns_init_time: u128,
-    pub reader_init_time: u128,
-    pub r1cs_init_time: u128,
 }
 
 impl<E: Pairing> CircomConfig<E> {
@@ -38,34 +33,16 @@ impl<E: Pairing> CircomConfig<E> {
             wtns,
             r1cs,
             sanity_check: false,
-            wtns_init_time: 0,
-            reader_init_time: 0,
-            r1cs_init_time: 0,        
         })
     }
     pub fn from_bytes(wtns_bytes: &[u8], r1cs_bytes: &[u8]) -> Result<Self> {
-        android_logger::init_once(Config::default().with_min_level(Level::Trace));
-
-        let now = Instant::now();
         let wtns = WitnessCalculator::from_bytes(wtns_bytes).unwrap();
-        log::error!("PROOF OF PASSPORT ---- from_bytes ---- wtns init. Took: {:?}", now.elapsed());
-        let wtns_init_time = now.elapsed().as_millis();
-        let now = Instant::now();
         let reader = Cursor::new(r1cs_bytes);
-        log::error!("PROOF OF PASSPORT ---- from_bytes ---- reader init. Took: {:?}", now.elapsed());
-        let reader_init_time = now.elapsed().as_millis();
-        let now = Instant::now();
         let r1cs = R1CSFile::new(reader)?.into();
-        log::error!("PROOF OF PASSPORT ---- from_bytes ---- r1cs init. Took: {:?}", now.elapsed());
-        let r1cs_init_time = now.elapsed().as_millis();
-        let now = Instant::now();
         Ok(Self {
             wtns,
             r1cs,
             sanity_check: false,
-            wtns_init_time,
-            reader_init_time,
-            r1cs_init_time,
         })
     }
 }
